@@ -5,7 +5,8 @@ namespace BaseObject
 {
     using VM = RE::BSScript::IVirtualMachine;
 
-    auto const formType = RE::FormType::Quest;
+    //auto const formType = RE::FormType::Quest;
+    auto const formType = RE::FormType::Script;
 	
 	RE::TESForm* MakeNewObject(RE::StaticFunctionTag*, std::string classtype)
 	{
