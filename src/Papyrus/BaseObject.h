@@ -34,11 +34,23 @@ namespace BaseObject
 
 		auto handle = virtualmachine->GetObjectHandlePolicy1()->GetHandleForObject(formType, form);
 
-		virtualmachine->ResetAllBoundObjects(handle);
+		//virtualmachine->ResetAllBoundObjects(handle);
 		virtualmachine->GetObjectBindPolicy()->bindInterface->RemoveAllBoundObjects(handle);
 		
 		// dangerous??
 		delete(form);
+	}
+
+	void Scan(RE::StaticFunctionTag*, RE::TESForm* form)
+	{
+
+		auto virtualmachine = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+		auto handle = virtualmachine->GetObjectHandlePolicy1()->GetHandleForObject(formType, form);
+
+		//virtualmachine->GetObjectBindPolicy()->bindInterface->RemoveAllBoundObjects(handle);
+		
+		
 	}
 
 
@@ -48,6 +60,7 @@ namespace BaseObject
 
 		BIND(MakeNewObject);
 		BIND(DeleteObject);
+		BIND(Scan);
 
 		return true;
 	}
