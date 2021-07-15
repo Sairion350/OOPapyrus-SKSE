@@ -5,12 +5,10 @@ namespace BaseObject
 {
     using VM = RE::BSScript::IVirtualMachine;
 
+    auto const formType = RE::FormType::Quest;
 	
 	RE::TESForm* MakeNewObject(RE::StaticFunctionTag*, std::string classtype)
 	{
-		logger::info("{} a", classtype);
-
-		auto const formType = RE::FormType::Quest;
 		auto factory = RE::IFormFactory::GetFormFactoryByType(formType);
 		auto form = factory->Create();
 
@@ -31,13 +29,13 @@ namespace BaseObject
 	void DeleteObject(RE::StaticFunctionTag*, RE::TESForm* form)
 	{
 
-		auto const formType = RE::FormType::Quest;
 		auto virtualmachine = RE::BSScript::Internal::VirtualMachine::GetSingleton();
 
 		auto handle = virtualmachine->GetObjectHandlePolicy1()->GetHandleForObject(formType, form);
 
 		virtualmachine->ResetAllBoundObjects(handle);
 		virtualmachine->GetObjectBindPolicy()->bindInterface->RemoveAllBoundObjects(handle);
+		
 		// dangerous??
 		delete(form);
 	}
