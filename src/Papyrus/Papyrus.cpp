@@ -8,10 +8,21 @@
 
 namespace Papyrus
 {
+
+	template <class T>
+	RE::VMTypeID vm_cast()
+	{
+		return static_cast<RE::VMTypeID>(T::FORMTYPE);
+	}
+
 	void Bind()
 	{
 		auto papyrus = SKSE::GetPapyrusInterface();
 		if (papyrus) {
+
+			//can only pass back forms
+			//RE::BSScript::Internal::VirtualMachine::GetSingleton()->RegisterObjectType(vm_cast<RE::BSScript::Object>(), "ScriptInstance");
+
 			papyrus->Register(BaseObject::Bind);
 		}
 	}

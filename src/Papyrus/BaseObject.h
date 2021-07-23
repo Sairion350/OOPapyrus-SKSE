@@ -10,7 +10,7 @@ namespace BaseObject
 
     std::vector<RE::BSTSmartPointer<RE::BSScript::Object>> GetAttatchedScripts (RE::TESForm* form);
 	
-	RE::TESForm* MakeNewObject(RE::StaticFunctionTag*, std::string classtype)
+	RE::TESForm* MakeNewBoundObject(RE::StaticFunctionTag*, std::string classtype)
 	{
 		auto factory = RE::IFormFactory::GetFormFactoryByType(formType);
 		auto form = factory->Create();
@@ -34,14 +34,43 @@ namespace BaseObject
 
 		auto virtualmachine = RE::BSScript::Internal::VirtualMachine::GetSingleton();
 
-		auto handle = virtualmachine->GetObjectHandlePolicy1()->GetHandleForObject(formType, form);
-
-		virtualmachine->ResetAllBoundObjects(handle); // reset script vars
-		//virtualmachine->GetObjectBindPolicy()->bindInterface->RemoveAllBoundObjects(handle); // does nothing?
+		auto handle = virtualmachine->GetObjectHandlePolicy1()->GetHandleForObject(form->GetFormType(), form);
 		
+		virtualmachine->RemoveAllBoundObjects(handle);
+
 		// dangerous??
 		delete(form);
 
+	}
+
+	void UnbindObjects(RE::StaticFunctionTag*, RE::TESForm* form){ // Generally speaking, don't use this it kind of sucks
+		//auto virtualmachine = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+		//for (auto& i : BaseObject::GetAttatchedScripts(form)){
+		//	virtualmachine->UnbindObject(i);
+		//}
+		auto virtualmachine = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+		
+		auto handle = virtualmachine->GetObjectHandlePolicy1()->GetHandleForObject(form->GetFormType(), form);
+		
+		virtualmachine->RemoveAllBoundObjects(handle);
+
+		// dangerous??
+		delete(form);
+
+	}
+
+
+	std::string GetVMHandle(RE::StaticFunctionTag*, RE::TESForm* boundform, std::string classstr){
+		auto virtualmachine = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+
+		auto handle = virtualmachine->GetObjectHandlePolicy1()->GetHandleForObject(boundform->GetFormType(), boundform);
+
+		RE::BSTSmartPointer<RE::BSScript::Object> result;
+
+		virtualmachine->FindBoundObject(handle, classstr.c_str(), result);
+
+		return std::to_string(result->GetHandle());
 	}
 
 	void Scan(RE::StaticFunctionTag*, RE::TESForm* form)
@@ -49,7 +78,13 @@ namespace BaseObject
 
 		auto scripts = BaseObject::GetAttatchedScripts(form);
 
+		//scripts[0]->~Object()// calls destructor
+
 		logger::info("{} script attatched", scripts.size());
+
+		for (auto& i : scripts){
+			logger::info("{} references", i->refCountAndHandleLock);
+		}
 
 		
 	}
@@ -86,14 +121,30 @@ namespace BaseObject
 		return ret;
 	}
 
+	void CallEventOnForm(RE::StaticFunctionTag*, RE::TESForm* input, std::string eventname){
+		if (!input){
+			return;
+		}
+
+		SKSE::RegistrationSet<> Event(eventname);
+
+		Event.Register(input);
+		Event.SendEvent();
+		Event.Unregister(input);
+
+	}
+
 
 	bool Bind(VM* a_vm)
 	{
 		const auto obj = "BaseObject"sv;
 
-		BIND(MakeNewObject);
+		BIND(MakeNewBoundObject);
 		BIND(DeleteObject);
 		BIND(Scan);
+		BIND(GetVMHandle, true);
+		BIND(UnbindObjects);
+		BIND(CallEventOnForm, true); // needs to have tasklet?
 
 		return true;
 	}
